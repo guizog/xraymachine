@@ -27,7 +27,7 @@ async def upload_file(file: UploadFile):
     if not file:
         return {"message": "File not uploaded"}
 
-    if debugToggle:
+    if debugToggle: ##info for debug and dev purposes
         return {
             "results": {
                 "file": "temp",
