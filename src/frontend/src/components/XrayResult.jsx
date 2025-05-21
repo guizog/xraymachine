@@ -1,19 +1,16 @@
-import React from "react";
+import React, {useState} from "react";
 
 const XrayResult = ({formData}) => {
-
-
-
     return (
-        <>
-            <section>
-                X-ray results:
-                <ul>
-                    <li>Xray: ###Show image in here#####</li>
-                    <li>Expect bone age: {formData.results.boneAge}</li>
+        <div className="uploadPanel">
+            <section className="file-section">
+                <p className="section-title">X-ray results:</p>
+                <ul className="file-info">
+                    <li><strong>Uploaded Xray image:</strong> #### WIP ####</li>
+                    <li><strong>Expect bone age:</strong> {formData.results.boneAge}</li>
                 </ul>
             </section>
-        </>
+        </div>
     )
 }
 

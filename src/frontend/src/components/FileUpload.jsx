@@ -1,13 +1,26 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 
 const FileUpload = ({setIsSubmitted, setFormData}) => {
     const [file, setFile] = useState(null);
+    const [preview, setPreview] = useState(null);
 
     const handleFileChange = (e) => {
         if (e.target.files) {
             setFile(e.target.files[0]);
         }
     };
+
+    useEffect(() => {
+        if (!file) {
+            setPreview(undefined);
+            return;
+        }
+
+        const objectUrl = URL.createObjectURL(file);
+        setPreview(objectUrl);
+
+        return () => URL.revokeObjectURL(file);
+    }, [file]);
 
     const handleUpload = async () => {
         if (file) {
@@ -33,33 +46,33 @@ const FileUpload = ({setIsSubmitted, setFormData}) => {
     };
 
     return (
-        <>
+        <div className="uploadPanel">
+            <h1 className="title">Upload your x-ray image</h1>
+
             <div className="input-group">
                 <input id="file" type="file" onChange={handleFileChange}/>
             </div>
-            {file && (
-                <section>
-                    File details:
-                    <ul>
-                        <li>Name: {file.name}</li>
-                        <li>Type: {file.type}</li>
-                        <li>Size: {file.size} bytes</li>
-                    </ul>
-                </section>
-            )}
 
-            {!file && (
-                <button disabled
-                    className="submit"
-                >Select a file to upload</button>
+            {file ? (
+                <>
+                    <section className="file-section">
+                        <h2 className="section-title">File Details</h2>
+                        <ul className="file-info">
+                            <li><strong>Name:</strong> {file.name}</li>
+                            <li><strong>Type:</strong> {file.type}</li>
+                            <li><strong>Size:</strong> {file.size.toLocaleString()} bytes</li>
+                        </ul>
+                    </section>
+
+                    <h2 className="section-title">Image Preview</h2>
+                    <img className="preview-image" src={preview} alt="Preview"/>
+
+                    <button onClick={handleUpload} className="submit active">Upload File</button>
+                </>
+            ) : (
+                <button className="submit inactive" disabled>Select a file to upload</button>
             )}
-            {file && (
-                <button
-                    onClick={handleUpload}
-                    className="submit"
-                >Upload file</button>
-            )}
-        </>
+        </div>
     );
 };
 

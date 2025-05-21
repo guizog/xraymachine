@@ -9,7 +9,7 @@ O projeto está utilizando as bibliotecas React para o frontend e FastAPI para g
 ## Frontend
 npm install vite
 
-cd frontend
+cd src/frontend/
 
 npm install
 
@@ -19,7 +19,5 @@ npm dev run
 
 npm install fastAPI uvicorn
 
-cd backend
-
-uvicorn backend.main:app --reload 
+uvicorn src.backend.main:app --reload 
 
