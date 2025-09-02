@@ -13,11 +13,11 @@ cd src/frontend/
 
 npm install
 
-npm dev run
+npm run dev
 
 ## Backend
 
-npm install fastAPI uvicorn
+pip install fastapi uvicorn
 
 uvicorn src.backend.main:app --reload 
 
