@@ -8,6 +8,7 @@ const XrayResult = ({formData}) => {
                 <ul className="file-info">
                     <li><strong>Uploaded Xray image:</strong> #### WIP ####</li>
                     <li><strong>Expect bone age:</strong> {formData.results.boneAge}</li>
+                    <li><strong>class:</strong> {formData.results.class}</li>
                 </ul>
             </section>
         </div>

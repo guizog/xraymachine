@@ -1,11 +1,14 @@
 import base64
+import os.path
+import uuid
+from http.client import responses
 
 from fastapi import FastAPI, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response
+from . import modelAi
 
 app = FastAPI()
-
 
 app.add_middleware(
     CORSMiddleware,
@@ -14,6 +17,14 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+modelAi.trainModel()
+
+if os.path.exists("xray_model.h5"):
+   print("model already exists, using the saved model")
+   modelAi.runAi(file_Location)
+else:
+    print("model does not exist, training the model...")
+    modelAi.trainModel()
 
 @app.get("/")
 async def root():
@@ -24,10 +35,24 @@ async def root():
 async def say_hello(name: str):
     return {"message": f"Hello {name}"}
 
-@app.post("/api/uploadFile")
+@app.post("/api/uploadFile",
+          responses = {
+              200: {
+                  "content": {"image/png": {}}
+              }
+          },
+          response_class=Response
+          )
 async def upload_file(file: UploadFile):
     if not file:
         return {"message": "File not uploaded"}
+
+    file_Location = f"C:\\Users\\guilherme.zografos\\PycharmProjects\\FastAPIProject\\temp\\{uuid.uuid4()}.png"#{file.filename}"
+    with open(file_Location, "wb+") as file_object:
+        file_object.write(file.file.read())
+
+    result = modelAi.runAi(file_Location)
+
 
     #####
     #
@@ -40,7 +65,8 @@ async def upload_file(file: UploadFile):
     return {
         "message": "success",
         "results": {
-            "file": "a",
+            "class": result,
+            "file": "a",#Response(content=image_bytes, media_type="image/png"),
             "boneAge": 10
         }
     }
