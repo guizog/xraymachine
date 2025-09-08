@@ -17,11 +17,10 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-modelAi.trainModel()
 
 if os.path.exists("xray_model.h5"):
    print("model already exists, using the saved model")
-   modelAi.runAi(file_Location)
+   #modelAi.runAi()#file_Location)
 else:
     print("model does not exist, training the model...")
     modelAi.trainModel()

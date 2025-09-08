@@ -13,6 +13,7 @@ def trainModel():
 
     csvData = pd.read_csv(dataPath)
 
+    csvData["boneage_class"] = (csvData["boneage"] // 12).clip(0, 18).astype(str)
     csvData["boneage"] = csvData["boneage"].astype(str)
     csvData["id"] = csvData["id"].astype(str) + ".png"
 
@@ -20,30 +21,30 @@ def trainModel():
     train_df, val_df = train_test_split(csvData, test_size=0.2, random_state=42)
 
     datagen = ImageDataGenerator(rescale=1. / 255)
-    all_classes = csvData["boneage"].astype(str).unique().tolist()
+    #all_classes = csvData["boneage"].astype(str).unique().tolist()
 
     train_generator = datagen.flow_from_dataframe(
         dataframe=train_df,
         directory=image_dir,
         x_col="id",
-        y_col="boneage",
+        y_col="boneage_class",
         target_size=(224, 224),
         batch_size=32,
-        class_mode="categorical",
-        classes=all_classes,
-        shuffle=True
+        class_mode="categorical"
+        #classes=all_classes,
+        #shuffle=True
     )
 
     val_generator = datagen.flow_from_dataframe(
         dataframe=val_df,
         directory=image_dir,
         x_col="id",
-        y_col="boneage",
+        y_col="boneage_class",
         target_size=(224, 224),
         batch_size=32,
-        class_mode="categorical",
-        classes=all_classes,
-        shuffle=False
+        class_mode="categorical"
+        #classes=all_classes,
+        #shuffle=False
     )
 
     print("Imagens no treino:", train_generator.samples)
@@ -52,7 +53,6 @@ def trainModel():
     num_classes = len(train_generator.class_indices)
     print("Número de classes detectadas:", num_classes)
 
-    # CNN simples
     model = models.Sequential([
         layers.Conv2D(32, (3, 3), activation="relu", input_shape=(224, 224, 3)),
         layers.MaxPooling2D(2, 2),
@@ -126,17 +126,15 @@ def trainModelCats():
     print("✅ Modelo salvo em 'cats_vs_dogs_model.h5'")
 
 
-def runAi(imagePath):
+def runAiCatsDogs(imagePath):
     model = tf.keras.models.load_model("cats_vs_dogs_model.h5")
 
     img_path = imagePath
 
-    # Carregar e preparar a imagem
     img = load_img(img_path, target_size=(150, 150))  # redimensiona
     img_array = img_to_array(img) / 255.0  # normaliza
     img_array = np.expand_dims(img_array, axis=0)  # adiciona dimensão batch
 
-    # Fazer a predição
     prediction = model.predict(img_array)
 
     #   TODO: Gerar matriz com o resultado final do treinamento
@@ -149,3 +147,28 @@ def runAi(imagePath):
         print("🐶 É um CACHORRO com confiança:", 1 - prediction[0][0])
 
     return "gato" if prediction[0][0] > 0.5 else "cachorro"
+
+
+def runAi(imagePath):
+    model = tf.keras.models.load_model("xray_model.h5")
+
+    img_path = imagePath
+
+    img = load_img(img_path, target_size=(224, 224))  # redimensiona
+    img_array = img_to_array(img) / 255.0  # normaliza
+    img_array = np.expand_dims(img_array, axis=0)  # adiciona dimensão batch
+
+    prediction = model.predict(img_array)
+
+    #   TODO: Gerar matriz com o resultado final do treinamento
+    #
+
+    predicted_class = np.argmax(prediction, axis=1)[0]
+    confidence = np.max(prediction)
+
+    predicted_age_years = predicted_class
+
+    print(f"📸 Classe predita: {predicted_class} (≈ {predicted_age_years} anos)")
+    print(f"Confiança: {confidence:.2f}")
+
+    return predicted_age_years, confidence
