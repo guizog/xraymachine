@@ -23,7 +23,7 @@ if os.path.exists("xray_model.h5"):
    #modelAi.runAi()#file_Location)
 else:
     print("model does not exist, training the model...")
-    modelAi.trainModel()
+    #modelAi.trainModel()
 
 @app.get("/")
 async def root():
@@ -60,11 +60,11 @@ async def upload_file(file: UploadFile):
     #
     #####
 
-    image_bytes: bytes = file.file;
+    #image_bytes: bytes = file.file
     return {
         "message": "success",
         "results": {
-            "class": result,
+            "class": "test",
             "file": "a",#Response(content=image_bytes, media_type="image/png"),
             "boneAge": 10
         }

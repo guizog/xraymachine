@@ -4,3 +4,13 @@ src/backend/__pycache__/main.cpython-313.pyc
 /temp
 *.pyc
 *.pyc
+/.venv/
+/src/backend/__pycache__
+/node_modules/
+.gitignore
+package.json
+src/backend/__pycache__/__init__.cpython-311.pyc
+src/backend/__pycache__/main.cpython-311.pyc
+src/backend/__pycache__/modelAi.cpython-311.pyc
+package-lock.json
+requirements.txt
