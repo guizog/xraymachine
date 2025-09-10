@@ -1,11 +1,16 @@
-from tensorflow.keras.preprocessing.image import ImageDataGenerator
 import os
 import zipfile
 import tensorflow as tf
 import numpy as np
 import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
 from tensorflow.keras.preprocessing.image import ImageDataGenerator, load_img, img_to_array
-from tensorflow.keras import layers, models
+from tensorflow.keras import layers, models, optimizers
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+from sklearn.metrics import classification_report, confusion_matrix
+from sklearn.utils.class_weight import compute_class_weight
+
 
 print(tf.config.list_physical_devices('GPU'))
 
@@ -37,9 +42,9 @@ def trainModel():
         y_col="boneage_class",
         target_size=(224, 224),
         batch_size=32,
-        class_mode="categorical"
+        class_mode="categorical",
         #classes=all_classes,
-        #shuffle=True
+        shuffle=True
     )
 
     val_generator = datagen.flow_from_dataframe(
@@ -54,11 +59,24 @@ def trainModel():
         shuffle=False
     )
 
-    print("Imagens no treino:", train_generator.samples)
-    print("Imagens na validação:", val_generator.samples)
+    print("INFO: Imagens no treino:", train_generator.samples)
+    print("INFO: Imagens na validação:", val_generator.samples)
 
     num_classes = len(train_generator.class_indices)
-    print("Número de classes detectadas:", num_classes)
+    print("INFO: Número de classes detectadas:", num_classes)
+
+
+    classes_in_train = np.unique(train_df["boneage_class"].values)
+
+    # Calcula os pesos
+    class_weights = compute_class_weight(
+        class_weight='balanced',
+        classes=classes_in_train,
+        y=train_df["boneage_class"].values
+    )
+
+    class_weight_dict = dict(zip(classes_in_train, class_weights))
+    print("Class weights:", class_weight_dict)
 
     model = models.Sequential([
         layers.Conv2D(32, (3, 3), activation="relu", input_shape=(224, 224, 3)),
@@ -74,31 +92,40 @@ def trainModel():
 
     model.compile(optimizer="adam", loss="categorical_crossentropy", metrics=["accuracy"])
 
-    model.fit(train_generator, validation_data=val_generator, epochs=8)
+    model.fit(train_generator, validation_data=val_generator, epochs=8, class_weight=class_weight_dict)
 
     model.save("xray_model.h5")
     print(f"Modelo salvo")
 
 
 
-    # classification report e matriz de confusão:
     y_pred_probs = model.predict(val_generator)
     y_pred = np.argmax(y_pred_probs, axis=1)
     y_true = val_generator.classes
-    class_labels = list(val_generator.class_indices.keys())
 
-    report = classification_report(y_true, y_pred, target_names=class_labels)
+    class_labels = sorted([int(k) for k in val_generator.class_indices.keys()])
+    class_names = [str(k) for k in class_labels]
+
+    # --- Classification report ---
+    report = classification_report(
+        y_true, 
+        y_pred, 
+        labels=class_labels,
+        target_names=class_names
+    )
     print("Classification Report:\n", report)
 
     with open("classification_report.txt", "w") as f:
         f.write(report)
     print("Classification report salvo em classification_report.txt")
 
-    cm = confusion_matrix(y_true, y_pred)
+    # --- Matriz de confusão ---
+    cm = confusion_matrix(y_true, y_pred, labels=class_labels)
+
     plt.figure(figsize=(12,8))
     sns.heatmap(cm, annot=True, fmt="d", cmap="Blues",
-                xticklabels=class_labels,
-                yticklabels=class_labels)
+                xticklabels=class_names,
+                yticklabels=class_names)
     plt.xlabel("Predicted")
     plt.ylabel("True")
     plt.title("Matriz de Confusão")
@@ -108,78 +135,6 @@ def trainModel():
 
     return model, train_generator.class_indices
 
-def trainModelCats():
-    _URL = 'https://storage.googleapis.com/mledu-datasets/cats_and_dogs_filtered.zip'
-
-    path_to_zip = tf.keras.utils.get_file('cats_and_dogs_filtered.zip', origin=_URL, extract=False)
-
-    # Extrair
-    zip_dir = os.path.splitext(path_to_zip)[0]
-    if not os.path.exists(zip_dir):
-        with zipfile.ZipFile(path_to_zip, 'r') as zip_ref:
-            zip_ref.extractall(os.path.dirname(path_to_zip))
-
-    # Caminhos
-    base_dir = os.path.join(os.path.dirname(path_to_zip), 'cats_and_dogs_filtered')
-    train_dir = os.path.join(base_dir, 'train')
-    validation_dir = os.path.join(base_dir, 'validation')
-
-    train_datagen = ImageDataGenerator(rescale=1. / 255)
-    val_datagen = ImageDataGenerator(rescale=1. / 255)
-
-    train_generator = train_datagen.flow_from_directory(
-        train_dir, target_size=(150, 150), batch_size=20, class_mode='binary'
-    )
-
-    validation_generator = val_datagen.flow_from_directory(
-        validation_dir, target_size=(150, 150), batch_size=20, class_mode='binary'
-    )
-
-    # Modelo CNN
-    model = models.Sequential([
-        layers.Conv2D(32, (3, 3), activation='relu', input_shape=(150, 150, 3)),
-        layers.MaxPooling2D(2, 2),
-        layers.Conv2D(64, (3, 3), activation='relu'),
-        layers.MaxPooling2D(2, 2),
-        layers.Flatten(),
-        layers.Dense(512, activation='relu'),
-        layers.Dense(1, activation='sigmoid')
-    ])
-
-    model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
-
-    # Treinamento
-    model.fit(train_generator, epochs=3, validation_data=validation_generator)
-
-    # Avaliação
-    loss, acc = model.evaluate(validation_generator)
-    print(f"Acurácia no conjunto de validação: {acc:.2%}")
-
-    # Salvar o modelo treinado
-    model.save("cats_vs_dogs_model.h5")
-    print("Modelo salvo em 'cats_vs_dogs_model.h5'")
-
-def runAiCatsDogs(imagePath):
-    model = tf.keras.models.load_model("cats_vs_dogs_model.h5")
-
-    img_path = imagePath
-
-    img = load_img(img_path, target_size=(150, 150))  # redimensiona
-    img_array = img_to_array(img) / 255.0  # normaliza
-    img_array = np.expand_dims(img_array, axis=0)  # adiciona dimensão batch
-
-    prediction = model.predict(img_array)
-
-    #   TODO: Gerar matriz com o resultado final do treinamento
-    #         Separar as classes em anos ao invés de meses
-    #
-
-    if prediction[0][0] > 0.5:
-        print("É um GATO com confiança:", prediction[0][0])
-    else:
-        print("É um CACHORRO com confiança:", 1 - prediction[0][0])
-
-    return "gato" if prediction[0][0] > 0.5 else "cachorro"
 
 def runAi(imagePath):
     model = tf.keras.models.load_model("xray_model.h5")

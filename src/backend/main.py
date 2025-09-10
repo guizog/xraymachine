@@ -23,7 +23,7 @@ if os.path.exists("xray_model.h5"):
    #modelAi.runAi()#file_Location)
 else:
     print("model does not exist, training the model...")
-    #modelAi.trainModel()
+    modelAi.trainModel()
 
 @app.get("/")
 async def root():
