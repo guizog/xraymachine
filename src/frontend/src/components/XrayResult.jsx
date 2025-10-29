@@ -1,18 +1,49 @@
-import React, {useState} from "react";
+import React from "react";
 
-const XrayResult = ({formData}) => {
-    return (
-        <div className="uploadPanel">
-            <section className="file-section">
-                <p className="section-title">X-ray results:</p>
-                <ul className="file-info">
-                    <li><strong>Uploaded Xray image:</strong> #### WIP ####</li>
-                    <li><strong>Expect bone age:</strong> {formData.results.boneAge}</li>
-                    <li><strong>class:</strong> {formData.results.class}</li>
-                </ul>
-            </section>
-        </div>
-    )
-}
+const BoneAgeResult = ({ formData }) => {
+  if (!formData) return <p>Carregando...</p>;
 
-export default XrayResult
+  const { idadePredita, preview, fileName, sexo } = formData;
+
+  // Usa a idade em meses real (arredonda só para inteiro)
+  const totalMeses = Math.round(idadePredita);
+  const years = Math.floor(totalMeses / 12);
+  const months = totalMeses % 12;
+
+  // Texto amigável
+  let idadeFormatada = `Aproximadamente ${years} anos`;
+  if (months > 0) {
+    idadeFormatada += ` e ${months} meses`;
+  }
+
+  return (
+    <div className="uploadPanel">
+      <h2>Resultado da Predição</h2>
+
+      {preview && (
+        <img
+          src={preview}
+          alt="Uploaded"
+          className="preview-image"
+          style={{ maxWidth: "300px", marginBottom: "20px" }}
+        />
+      )}
+
+      <section className="result-section">
+        {fileName && <p><strong>Arquivo:</strong> {fileName}</p>}
+        <p><strong>Sexo:</strong> {sexo}</p>
+        <p><strong>Idade prevista:</strong> {idadeFormatada}</p>
+      </section>
+
+      <button
+        onClick={() => (window.location.href = "/")}
+        className="submit active"
+        style={{ marginTop: "20px" }}
+      >
+        Novo Upload
+      </button>
+    </div>
+  );
+};
+
+export default BoneAgeResult;

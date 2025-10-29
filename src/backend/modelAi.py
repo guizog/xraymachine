@@ -1,15 +1,28 @@
-from tensorflow.keras.preprocessing.image import ImageDataGenerator
 import os
 import zipfile
 import tensorflow as tf
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
 from tensorflow.keras.preprocessing.image import ImageDataGenerator, load_img, img_to_array
 from tensorflow.keras import layers, models
+from sklearn.metrics import classification_report, confusion_matrix
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
 
 def trainModel():
+<<<<<<< Updated upstream
     dataPath = "C:\\Users\\guilherme.zografos\\Downloads\\Bone+Age+Training+Set+Annotations\\train.csv"
     image_dir = "C:\\Users\\guilherme.zografos\\Documents\\Bone+Age+Training+Set\\boneage-training-dataset"
+=======
+    #for pure windows
+    dataPath = r"C:\Users\guilherme.zografos\Downloads\Bone+Age+Training+Set+Annotations\train.csv"
+    image_dir = r"C:\Users\guilherme.zografos\Documents\Bone+Age+Training+Set\boneage-training-dataset"
+
+    #for wsl build
+    #dataPath = "/mnt/c/Users/guizo/Downloads/Bone+Age+Training+Set+Annotations/train.csv"
+    #image_dir = "/mnt/c/Users/guizo/Downloads/Bone+Age+Training+Set/boneage-training-dataset"
+>>>>>>> Stashed changes
 
     csvData = pd.read_csv(dataPath)
 

@@ -1,6 +1,9 @@
 .idea
 src/backend/__pycache__/main.cpython-313.pyc
+<<<<<<< Updated upstream
 *.h5
 /temp
 *.pyc
 *.pyc
+=======
+>>>>>>> Stashed changes
