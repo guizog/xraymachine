@@ -148,16 +148,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-<<<<<<< Updated upstream
-if os.path.exists("xray_model.h5"):
-   print("model already exists, using the saved model")
-   #modelAi.runAi()#file_Location)
-else:
-    print("model does not exist, training the model...")
-    modelAi.trainModel()
-=======
->>>>>>> Stashed changes
-
 # ==========================
 # Rota de predição
 # ==========================
@@ -201,21 +191,9 @@ async def predict(file: UploadFile, sexo: str = Form(...)):
         img_tensor = (img_tensor / 255.0 - 0.5) / 0.5  # normalização [-1, 1]
         img_tensor = img_tensor.to(DEVICE)
 
-<<<<<<< Updated upstream
-    image_bytes: bytes = file.file;
-    return {
-        "message": "success",
-        "results": {
-            "class": result,
-            "file": "a",#Response(content=image_bytes, media_type="image/png"),
-            "boneAge": 10
-        }
-    }
-=======
         # Predição
         with torch.no_grad():
             pred = selected_model(img_tensor).item()
->>>>>>> Stashed changes
 
         print(f"[DEBUG] Predição feita. Retornando sexo: {sexo_legivel}, idade: {round(pred, 1)} meses")
 
